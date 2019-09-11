@@ -15,7 +15,10 @@ SOLID — мнемонический акроним, введённый Майк
 
 Часто при правке багов и хотфиксов нарушается этот принцип. В случае хотфиксов нужно занести это в технический долг и выполнить его в ближайшее время.
 
-### Example
+### Пример
+
+Есть класс Order в котором описана логика работы с заказом.
+
 ```php
 class Order {
 
@@ -43,6 +46,8 @@ class Order {
 	
 }
 ```
+
+Необходимо разделить его на несколько классов и выделить логику работы с базой и отображением в отдельные классы
 
 ```php
 class Order {
@@ -88,7 +93,9 @@ class OrderViewer {
 
 Багфикс, рефакторинг и улучшение производительности это не нарушение этого принципа. Принцип гласит именно про изменение логики работы ПО.
 
-### Example
+### Пример
+
+У нас есть класс OrderRepository. В его методе load описана работа получения заказа из БД.
 
 ```php
 class OrderRepository {
@@ -113,6 +120,13 @@ class OrderRepository {
 	
 }
 ```
+
+Когда появляется необходимость получать заказы не только с базы, а например с API, то можно поступить следующим образом:
+1. Создать интерфейс IOrderSource
+2. Сделать 2 класса MySQLOrderSource и ApiOrderSource, которые выполняют данный интерфейс
+3. И передавать в конструктор класса OrderRepository инстанс, который реализует интерфейс IOrderSource.
+
+Таким образом мы можем легко добавлять новый источник заказов просто реализовав класс с интерфейсом IOrderSource. 
 
 ```php
 interface IOrderSource {
@@ -176,11 +190,14 @@ class OrderRepository {
 
 ![The Liskov Substitution Principle](images/The%20Liskov%20Substitution%20Principle.png)
 
-### Example ###
+### Пример ###
+
+У нас есть класс LessonRepository, который в методе getAll возвращает массив всех уроков из файла. Появилась необходимость получать уроки из БД. Создаем класс DatabaseLessonRepository, наследуем его от LessonRepository и переписываем метод getAll.
 
 ```php
 class LessonRepository {
 	
+    //return array of lesson through file system.
 	public function getAll() {
 		return $files;
 	}
@@ -189,12 +206,15 @@ class LessonRepository {
 
 class DatabaseLessonRepository extends LessonRepository {
 	
+    //return a Collection type instead of array
 	public function getAll() {
 		return Lesson::all();
 	}
 	
 }
 ```
+
+В методе getAll у класса DatabaseLessonRepository вместо коллекции мы должны вернуть массив
 
 ```php
 interface LessonRepositoryInterface {
@@ -226,6 +246,10 @@ class DatabaseLessonRepository implements LessonRepositoryInterface {
 
 ![The Interface Segregation Principle](images/The%20Interface%20Segregation%20Principle.png)
 
+### Пример ###
+
+У нас есть интерфейс Bird, который имеет методы eat и fly. Когда в коде появляется Penguin, который не умеет летать нужно бросить Exception.
+
 ```php
 interface Bird {
 	
@@ -251,6 +275,8 @@ class Penguin implements Bird {
 	
 }
 ```
+
+Вместо Exception лучше разделить интерфейсы для птицы на Bird, FlyingBird и RunningBird.
 
 ```php
 interface Bird {
@@ -295,7 +321,9 @@ class Penguin implements Bird, RunningBird {
 
 Самое простое решение начать применять этот принцип это писать тесты т.к. при их написании тестов необходимо мокать какие-то данные и как итог: проще переписать класс, чем написать на него тест.
 
-### Example ###
+### Пример ###
+
+У нас есть класс EBookReader, который принимает в коструктор объект класса PDFBook и в методе read - читает его. Когда появляется необходимость читать не только из PDF-файла класс необходимо изменять. 
 
 ```php
 class EBookReader {
@@ -319,6 +347,8 @@ class PDFBook {
 	
 }
 ```
+
+Лучше сделать интерфейс EBook с методом read. И тогда в EBookReader мы сможем передавать любые объекты, которые реализовывают интерфейс EBook.  
 
 ```php
 interface EBook {
